@@ -1,39 +1,12 @@
-class ListNode {
-  constructor(val, next = null) {
-    
-    this.val = val;
-    this.next = next;
-  }
-}
+const express = require("express");
+const bodyParser = require("body-parser")
+const mongoose = require("mongoose");
 
-const linkedList = [5, 4, 3, 2, 1].reduce((acc, val) => new ListNode(val, acc), null);
+const app = express();
+app.use(bodyParser.urlencoded({extended: true}));
 
 
-const printList = (head) => {
-  if(!head) {
-    return;
-  }
 
-  console.log(head.val);
-  printList(head.next);
-}
-
-// --------- solution -----------
-
-var reverseList = function(head) {
-  let prev = null;
-  let current = head;
-  
-  while(current) {
-    let nextTemp = current.next;
-    current.next = prev;
-    prev = current;
-    current = nextTemp;
-  }
-  
-  return prev;
-};
-
-printList(linkedList);
-console.log('after reverse')
-printList(reverseList(linkedList))
+app.listen("4000", () => {
+    console.log("Server is running on port 4000");
+});
