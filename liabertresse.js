@@ -1,39 +1,39 @@
-const API_KEY = "YOUR_GOOGLE_API_KEY";
-const axios = require("axios");
-
-async function getCoordsForAddress(address) {
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-    address
-  )}&key=${API_KEY}
-    `;
-
-  const response = await axios.get(url);
-  const data = response.data;
-
-  if (!data || data.status === "ZERO_RESULTS") {
-    const error = new HttpError("Could not find the location", 422);
-    throw error;
-  }
-  if (data.status === "REQUEST_DENIED") {
-    const error = new HttpError("REQUEST_DENIED" + data.error_message, 422);
-    throw error;
-  }
-
-  const coordinates = data.results[0].geometry.location;
-  return coordinates;
-}
-
-// Custom Error Handler
-class HttpError extends Error {
-  constructor(message, errorCode) {
-    super(message); //Add a 'message' property super class-Error
-    this.code = errorCode; //Adds a "code" property
+class ListNode {
+  constructor(val, next = null) {
+    
+    this.val = val;
+    this.next = next;
   }
 }
 
-// module.exports = getCoordsForAddress;
-// module.exports = HttpError;
+const linkedList = [5, 4, 3, 2, 1].reduce((acc, val) => new ListNode(val, acc), null);
 
-// Contributed by - Yasas Sandeepa
-// Undergraduate- University of Moratuwa
-// Sri Lanka
+
+const printList = (head) => {
+  if(!head) {
+    return;
+  }
+
+  console.log(head.val);
+  printList(head.next);
+}
+
+// --------- solution -----------
+
+var reverseList = function(head) {
+  let prev = null;
+  let current = head;
+  
+  while(current) {
+    let nextTemp = current.next;
+    current.next = prev;
+    prev = current;
+    current = nextTemp;
+  }
+  
+  return prev;
+};
+
+printList(linkedList);
+console.log('after reverse')
+printList(reverseList(linkedList))
