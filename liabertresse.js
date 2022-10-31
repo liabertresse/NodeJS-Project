@@ -1,68 +1,39 @@
-const puppeteer = require('puppeteer-extra');   
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const API_KEY = "YOUR_GOOGLE_API_KEY";
+const axios = require("axios");
 
-puppeteer.use(StealthPlugin());
+async function getCoordsForAddress(address) {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+    address
+  )}&key=${API_KEY}
+    `;
 
-const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker');
-puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
+  const response = await axios.get(url);
+  const data = response.data;
 
-const chromePaths = require('chrome-paths');
-const cheerio = require('cheerio');
-const sleep = ms => new Promise(res => setTimeout(res, ms));
+  if (!data || data.status === "ZERO_RESULTS") {
+    const error = new HttpError("Could not find the location", 422);
+    throw error;
+  }
+  if (data.status === "REQUEST_DENIED") {
+    const error = new HttpError("REQUEST_DENIED" + data.error_message, 422);
+    throw error;
+  }
 
-(async () => {
-    const browser = await puppeteer.launch({
-        headless: false,
-        args: [
-            "no-sandbox",
-            "--disable-notifications"
-        ]
-    });
+  const coordinates = data.results[0].geometry.location;
+  return coordinates;
+}
 
-    let allPage = await browser.pages();
-    const page = await allPage[0];
-    await page.goto('https://www.facebook.com/login/device-based/regular/login/', {
-        waitUntil: 'networkidle2',
-    });
+// Custom Error Handler
+class HttpError extends Error {
+  constructor(message, errorCode) {
+    super(message); //Add a 'message' property super class-Error
+    this.code = errorCode; //Adds a "code" property
+  }
+}
 
-    await page.waitForSelector('#email');
-    await page.focus('#email');
-    await page.keyboard.type('MASUKAN EMAIL FACEBOOK DISINI');
-  
-    await page.waitForSelector('#pass');
-    await page.focus('#pass');
-    await page.keyboard.type('MASUKAN PASSWORD FACEBOOK DISINI');
+// module.exports = getCoordsForAddress;
+// module.exports = HttpError;
 
-    const contentHtml = await page.content();
-    const $ = cheerio.load(contentHtml);
-    
-    const userinfo = $('span.x1lliihq').text();
-    const result = $('#loginbutton').attr('id')
-    console.log("Berhasil Login Dengan username " + userinfo)
-
-    await page.waitForSelector(`#${result}`);
-    await page.evaluate((result) => document.querySelector(`#${result}`).click(), result);
-    await sleep(10000);
-
-    if (page.url() == 'https://www.facebook.com/') {
-        await page.goto('MASUKAN POSTINGAN DISINI', {
-            waitUntil: 'networkidle2',
-        })
-        console.log("Berhasil Login....")
-        await sleep(3000,(console.log('Mencoba Comment...\n')));
-        const comment = await allPage[0] 
-        
-        await comment.waitForSelector('div > .x1ed109x > .xh8yej3 > .x78zum5 > .xi81zsa')
-        await comment.click('div > .x1ed109x > .xh8yej3 > .x78zum5 > .xi81zsa')
-        await comment.click('form.x1ed109x');
-
-        await sleep(3000,(console.log("Memasukan Comment...\n")));
-        await comment.keyboard.type('Test Auto Comment Bot');
-        
-        
-        await page.keyboard.press('Enter');
-        await sleep(3000,(console.log("Berhasil Comment...")));
-    } else {
-        console.log('gagal load halaman nih...')
-    } 
-    })();
+// Contributed by - Yasas Sandeepa
+// Undergraduate- University of Moratuwa
+// Sri Lanka
